@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // ======================
   // STATE
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   // ======================
   // EMAIL LOGIN
@@ -86,6 +88,12 @@ export default function LoginPage() {
       alert(err.message || "Google sign-in failed.");
     }
   };
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setShowPopup(true);
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6 relative">
@@ -175,6 +183,26 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-white/25 rounded-3xl p-10 w-[90%] max-w-md text-center shadow-2xl relative">
+            <h2 className="text-2xl font-bold mb-4 text-white">
+              Account Created!
+            </h2>
+            <p className="text-gray-400 mb-8">
+              Your account has been created successfully. Please login to continue.
+            </p>
+
+            <button
+              onClick={() => setShowPopup(false)}
+              className="w-full py-4 rounded-2xl bg-cyan-400 text-black font-bold hover:scale-[1.02] active:scale-95 transition"
+            >
+              Continue to Login
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

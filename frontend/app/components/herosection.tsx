@@ -96,6 +96,7 @@ export default function HeroSection() {
                       src={img}
                       alt="Room"
                       fill
+                      sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover"
                     />
                   </div>
@@ -172,6 +173,7 @@ export default function HeroSection() {
                       src={img}
                       alt="Flat"
                       fill
+                      sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover"
                     />
                   </div>

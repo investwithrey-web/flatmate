@@ -13,7 +13,6 @@ export default function SignupPage() {
   // ======================
   // STATE
   // ======================
-  const [showPopup, setShowPopup] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -29,6 +28,12 @@ export default function SignupPage() {
       alert("Please fill in Name, Email, and Password.");
       return;
     }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -55,10 +60,16 @@ export default function SignupPage() {
         console.error("DB Sync Error:", error);
       }
 
-      setShowPopup(true);
+      router.push("/login?registered=true");
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Something went wrong during signup");
+      if (err.code === "auth/weak-password") {
+        alert("Password must be at least 6 characters long.");
+      } else if (err.code === "auth/operation-not-allowed") {
+        alert("Email/password signup is not enabled. Enable it in Firebase Authentication settings.");
+      } else {
+        alert(err.message || "Something went wrong during signup");
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +100,7 @@ export default function SignupPage() {
         console.error("DB Sync Error:", error);
       }
 
-      setShowPopup(true);
+      router.push("/dashboard");
     } catch (error: any) {
       console.error(error);
       alert(error.message || "Google signup failed");
@@ -206,33 +217,6 @@ export default function SignupPage() {
         </div>
       </div>
 
-      {/* POPUP */}
-      {showPopup && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-white/25 rounded-3xl p-10 w-[90%] max-w-md text-center shadow-2xl relative">
-            <h2 className="text-2xl font-bold mb-4 text-white">
-              Welcome to RoomLensAI!
-            </h2>
-            <p className="text-gray-400 mb-8">
-              Let's get you set up. What are you looking to do today?
-            </p>
-
-            <button
-              onClick={() => router.push("/onboarding")}
-              className="w-full py-4 mb-4 rounded-2xl bg-cyan-400 text-black font-bold hover:scale-[1.02] active:scale-95 transition"
-            >
-              🏠 Find Flat / Roommate
-            </button>
-
-            <button
-              onClick={() => router.push("/post_property")}
-              className="w-full py-4 rounded-2xl border border-white/20 hover:bg-white/5 hover:border-cyan-400 text-white font-semibold transition"
-            >
-              🏢 Post Property
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
