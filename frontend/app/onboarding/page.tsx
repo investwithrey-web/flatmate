@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
@@ -9,12 +9,20 @@ import Link from "next/link";
 export default function OnboardingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
+  const selectedProperty = searchParams.get("property");
 
   // ======================
   // STATE
   // ======================
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [aiMatches, setAiMatches] = useState<any[]>([]);
+  const [aiSql, setAiSql] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     // Step 1: General Info
@@ -36,6 +44,10 @@ export default function OnboardingPage() {
     socialLevel: "",
     noiseTolerance: "",
     overnightGuests: "",
+    partyFrequency: "",
+    pets: "",
+    workFromHome: "",
+    flatmateStyle: "",
   });
 
   // ======================
@@ -86,13 +98,21 @@ export default function OnboardingPage() {
       !formData.genderPreference ||
       !formData.socialLevel ||
       !formData.noiseTolerance ||
-      !formData.overnightGuests
+      !formData.overnightGuests ||
+      !formData.partyFrequency ||
+      !formData.pets ||
+      !formData.workFromHome ||
+      !formData.flatmateStyle
     ) {
       alert("Please complete all fields in this step.");
       return;
     }
 
     setSaving(true);
+    setAiLoading(true);
+    setAiError(null);
+    setAiMatches([]);
+    setAiSql("");
 
     try {
       const { error } = await supabase
@@ -120,12 +140,39 @@ export default function OnboardingPage() {
         throw error;
       }
 
-      router.push("/dashboard");
+      setProfileSaved(true);
+
+      const response = await fetch("/api/ai-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preferences: {
+            budget: Number(formData.budget),
+            partyFrequency: formData.partyFrequency,
+            pets: formData.pets,
+            smoking: formData.smoking,
+            drinking: formData.drinking,
+            workFromHome: formData.workFromHome,
+            cleanliness: formData.cleanliness,
+            socialLevel: formData.socialLevel,
+            flatmateStyle: formData.flatmateStyle,
+          },
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setAiError(data.error || "Failed to generate match results.");
+      } else {
+        setAiSql(data.sql || "");
+        setAiMatches(data.matches || []);
+      }
     } catch (err: any) {
       console.error("Onboarding failed:", err);
-      alert("Failed to save profile: " + err.message);
+      setAiError(err.message || "Failed to save profile.");
     } finally {
       setSaving(false);
+      setAiLoading(false);
     }
   };
 
@@ -341,82 +388,150 @@ export default function OnboardingPage() {
           {/* STEP 3: roommate PREFERENCES & BUDGET */}
           {step === 3 && (
             <div className="space-y-6 animate-fadeIn">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Maximum Monthly Rent (INR / Budget)</label>
+                  <input
+                    type="number"
+                    name="budget"
+                    placeholder="e.g. 15000"
+                    value={formData.budget}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Party Frequency</label>
+                  <select
+                    name="partyFrequency"
+                    value={formData.partyFrequency}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">How often do you like to party?</option>
+                    <option value="Quiet nights">Quiet nights</option>
+                    <option value="Occasionally social">Occasionally social</option>
+                    <option value="Weekend party person">Weekend party person</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Preferred roommate Gender</label>
+                  <select
+                    name="genderPreference"
+                    value={formData.genderPreference}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">Preferred Gender?</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Any">No Preference / Any</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Pets Preference</label>
+                  <select
+                    name="pets"
+                    value={formData.pets}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">Do you welcome pets?</option>
+                    <option value="Pets welcome">Pets welcome</option>
+                    <option value="No pets">No pets</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Your Social Level</label>
+                  <select
+                    name="socialLevel"
+                    value={formData.socialLevel}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">How social are you?</option>
+                    <option value="Introvert">Introvert (Keep to myself, value quiet time)</option>
+                    <option value="Ambivert">Ambivert (Balanced, friendly but need downtime)</option>
+                    <option value="Extrovert">Extrovert (Love hanging out, very outgoing)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Work from home</label>
+                  <select
+                    name="workFromHome"
+                    value={formData.workFromHome}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">Do you work from home?</option>
+                    <option value="Full time">Full time</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Rarely">Rarely</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Noise Tolerance</label>
+                  <select
+                    name="noiseTolerance"
+                    value={formData.noiseTolerance}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">Your noise tolerance?</option>
+                    <option value="Very Quiet">Very Quiet (Prefer pin-drop silence)</option>
+                    <option value="Moderate">Moderate (Average noise is fine)</option>
+                    <option value="Okay with Noise">Okay with Noise (Music, chatter don't bother me)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Overnight Guests Policy Preference</label>
+                  <select
+                    name="overnightGuests"
+                    value={formData.overnightGuests}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    required
+                  >
+                    <option value="">Guest preference?</option>
+                    <option value="Allowed">Guests allowed freely</option>
+                    <option value="Sometimes">Guests allowed occasionally with heads up</option>
+                    <option value="Not Allowed">No overnight guests allowed</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="block mb-3 text-sm text-gray-300">Maximum Monthly Rent (INR / Budget)</label>
+                <label className="block mb-3 text-sm text-gray-300">Best flatmate vibe</label>
                 <input
-                  type="number"
-                  name="budget"
-                  placeholder="e.g. 15000"
-                  value={formData.budget}
+                  type="text"
+                  name="flatmateStyle"
+                  placeholder="Mellow, friendly, cinematic roommate..."
+                  value={formData.flatmateStyle}
                   onChange={handleChange}
                   className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
-                  min="1"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block mb-3 text-sm text-gray-300">Preferred roommate Gender</label>
-                <select
-                  name="genderPreference"
-                  value={formData.genderPreference}
-                  onChange={handleChange}
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
-                  required
-                >
-                  <option value="">Preferred Gender?</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Any">No Preference / Any</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-3 text-sm text-gray-300">Your Social Level</label>
-                <select
-                  name="socialLevel"
-                  value={formData.socialLevel}
-                  onChange={handleChange}
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
-                  required
-                >
-                  <option value="">How social are you?</option>
-                  <option value="Introvert">Introvert (Keep to myself, value quiet time)</option>
-                  <option value="Ambivert">Ambivert (Balanced, friendly but need downtime)</option>
-                  <option value="Extrovert">Extrovert (Love hanging out, very outgoing)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-3 text-sm text-gray-300">Noise Tolerance</label>
-                <select
-                  name="noiseTolerance"
-                  value={formData.noiseTolerance}
-                  onChange={handleChange}
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
-                  required
-                >
-                  <option value="">Your noise tolerance?</option>
-                  <option value="Very Quiet">Very Quiet (Prefer pin-drop silence)</option>
-                  <option value="Moderate">Moderate (Average noise is fine)</option>
-                  <option value="Okay with Noise">Okay with Noise (Music, chatter don't bother me)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-3 text-sm text-gray-300">Overnight Guests Policy Preference</label>
-                <select
-                  name="overnightGuests"
-                  value={formData.overnightGuests}
-                  onChange={handleChange}
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
-                  required
-                >
-                  <option value="">Guest preference?</option>
-                  <option value="Allowed">Guests allowed freely</option>
-                  <option value="Sometimes">Guests allowed occasionally with heads up</option>
-                  <option value="Not Allowed">No overnight guests allowed</option>
-                </select>
               </div>
             </div>
           )}
@@ -454,6 +569,90 @@ export default function OnboardingPage() {
             )}
           </div>
         </form>
+
+        {profileSaved && (
+          <div className="mt-10 rounded-[32px] border border-white/10 bg-black/40 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="grid place-items-center h-12 w-12 rounded-3xl bg-cyan-400 text-black text-xl">✨</div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">AI has found your flatmate-ready matches</h2>
+                <p className="text-gray-400 mt-1">Your answers are in. The AI built the SQL using the property schema and ranked the best matches for you.</p>
+              </div>
+            </div>
+
+            {aiError && (
+              <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+                {aiError}
+              </div>
+            )}
+
+            {aiLoading && (
+              <div className="rounded-3xl border border-white/10 bg-black/40 p-6 text-gray-300">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border-4 border-cyan-400/20 border-t-cyan-400 animate-spin" />
+                  <div>Finding your best roommate property matches...</div>
+                </div>
+              </div>
+            )}
+
+            {!aiLoading && aiMatches.length === 0 && !aiError && (
+              <div className="rounded-3xl border border-white/10 bg-black/40 p-6 text-gray-300">
+                <p>Your profile is saved, and the AI is generating top matches now.</p>
+              </div>
+            )}
+
+            {aiMatches.length > 0 && (
+              <div className="space-y-4">
+                {aiMatches.slice(0, 3).map((match, idx) => (
+                  <div key={match.id} className="rounded-3xl border border-white/10 bg-zinc-950 p-5">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Match #{idx + 1}</p>
+                        <h3 className="text-xl font-bold text-white mt-2">{match.title}</h3>
+                        <p className="text-gray-400 text-sm mt-2 line-clamp-2">{match.description}</p>
+                      </div>
+                      <div className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                        match.score >= 80 ? "bg-emerald-500/20 text-emerald-200" :
+                        match.score >= 50 ? "bg-amber-500/20 text-amber-200" :
+                        "bg-red-500/20 text-red-200"
+                      }`}>
+                        {match.score}%
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 text-xs text-gray-300">
+                      <div>Rent ₹{match.rent.toLocaleString()}</div>
+                      <div>City: {match.city}</div>
+                    </div>
+                  </div>
+                ))}
+
+                {aiSql && (
+                  <div className="rounded-3xl border border-white/10 bg-black/60 p-4 text-xs text-gray-300">
+                    <p className="font-semibold text-white mb-2">Generated SQL</p>
+                    <pre className="max-h-44 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5">{aiSql}</pre>
+                  </div>
+                )}
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  {returnTo === "listings" && selectedProperty ? (
+                    <button
+                      onClick={() => router.push(`/listings?selectedProperty=${selectedProperty}`)}
+                      className="rounded-2xl bg-white/10 px-6 py-3 text-white font-semibold hover:bg-white/20 transition"
+                    >
+                      Return to listing
+                    </button>
+                  ) : null}
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    className="rounded-2xl bg-cyan-400 px-6 py-3 text-black font-semibold hover:bg-cyan-300 transition"
+                  >
+                    Go to dashboard
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <style jsx>{`

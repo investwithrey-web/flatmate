@@ -72,7 +72,6 @@ export default function DashboardPage() {
   // STATE
   // ======================
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [recommendations, setRecommendations] = useState<(Property & { score: number })[]>([]);
   const [myPostings, setMyPostings] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -87,6 +86,8 @@ export default function DashboardPage() {
       return;
     }
 
+    const userId = user!.uid;
+
     async function fetchDashboardData() {
       setLoading(true);
       try {
@@ -94,7 +95,7 @@ export default function DashboardPage() {
         const { data: profileData, error: profileErr } = await supabase
           .from("users")
           .select("*")
-          .eq("id", user.uid)
+          .eq("id", userId)
           .maybeSingle();
 
         if (profileErr) throw profileErr;
@@ -110,22 +111,10 @@ export default function DashboardPage() {
         const propertyList: Property[] = allProps || [];
 
         // Filter User's own postings
-        const ownProps = propertyList.filter((p) => p.user_id === user.uid);
+        const ownProps = propertyList.filter((p) => p.user_id === userId);
         setMyPostings(ownProps);
 
-        // Calculate recommendations if onboarded
-        if (profileData && profileData.onboarded) {
-          const scored = propertyList
-            .filter((p) => p.user_id !== user.uid) // don't recommend own property
-            .map((p) => {
-              const score = calculateMatchScore(p, profileData);
-              return { ...p, score };
-            })
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 3); // top 3 recommendations
-
-          setRecommendations(scored);
-        }
+        // Compatibility/recommendations removed
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
@@ -136,62 +125,7 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, [user, authLoading]);
 
-  // ======================
-  // COMPATIBILITY ALGORITHM
-  // ======================
-  const calculateMatchScore = (property: Property, userProfile: UserProfile): number => {
-    let score = 0;
-
-    // Gender Match (Weight: 25%)
-    if (
-      property.gender_preference === "Any" ||
-      userProfile.gender === property.gender_preference ||
-      property.gender_preference === ""
-    ) {
-      score += 25;
-    }
-
-    // Budget Match (Weight: 25%)
-    if (property.rent <= userProfile.budget) {
-      score += 25;
-    } else if (property.rent <= userProfile.budget * 1.25) {
-      score += 15;
-    }
-
-    // Food Habit Match (Weight: 15%)
-    if (
-      property.food_habit === "Any" ||
-      userProfile.food_habit === property.food_habit ||
-      property.food_habit === ""
-    ) {
-      score += 15;
-    }
-
-    // Smoking Match (Weight: 15%)
-    if (
-      property.smoking === "Allowed" ||
-      (property.smoking === "Not Allowed" && userProfile.smoking === "Not Allowed")
-    ) {
-      score += 15;
-    }
-
-    // Drinking Match (Weight: 10%)
-    if (
-      property.drinking === "Allowed" ||
-      (property.drinking === "Not Allowed" && userProfile.drinking === "Not Allowed")
-    ) {
-      score += 10;
-    }
-
-    // Social Level Match (Weight: 10%)
-    if (property.social_level === userProfile.social_level || !property.social_level) {
-      score += 10;
-    } else {
-      score += 5;
-    }
-
-    return score;
-  };
+  // Compatibility algorithm removed (feature disabled)
 
   // ======================
   // DELETE PROPERTY
@@ -227,178 +161,147 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-12 relative">
-      {/* Background Glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/15 via-black to-purple-950/15 z-0 pointer-events-none" />
+    <div className="min-h-screen bg-black text-white px-6 py-10 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/10 via-black to-purple-950/10 pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-12">
-        {/* Welcome Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold">
-              Welcome, <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-transparent bg-clip-text">{profile?.name || user?.displayName || user?.email?.split("@")[0]}</span>
-            </h1>
-            <p className="text-gray-400 mt-2">Manage your listings, profile, and check matches.</p>
-          </div>
-          <div className="flex gap-4">
-            <Link href="/post_property">
-              <button className="px-6 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:scale-105 active:scale-95 transition">
-                🏢 Post Property
-              </button>
-            </Link>
-            <Link href="/profile">
-              <button className="px-6 py-3 rounded-xl border border-white/20 hover:bg-white/5 transition font-semibold">
-                👤 Edit Profile
-              </button>
-            </Link>
-          </div>
-        </div>
+      <div className="relative z-10 max-w-7xl mx-auto grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="space-y-6">
+          <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
+            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Dashboard</p>
+            <h2 className="mt-4 text-3xl font-extrabold text-white">Hello, {profile?.name || user?.displayName || user?.email?.split("@")[0]}</h2>
+            <p className="mt-3 text-gray-400 text-sm leading-relaxed">Your flatmate hub for listings, matches and property insights.</p>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <div className="text-gray-500 text-xs uppercase font-semibold">Profile Status</div>
-            <div className="text-2xl font-bold mt-2 text-cyan-400 flex items-center gap-2">
-              {profile?.onboarded ? "✨ Fully Completed" : "⚠️ Incomplete"}
+            <div className="mt-6 rounded-3xl bg-zinc-950/80 p-5 border border-cyan-400/10">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-gray-400 text-xs uppercase tracking-[0.2em]">Profile</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{profile?.onboarded ? "Onboarded" : "Needs attention"}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${profile?.onboarded ? "bg-emerald-500/15 text-emerald-200" : "bg-amber-500/15 text-amber-200"}`}>
+                  {profile?.onboarded ? "Ready" : "Pending"}
+                </span>
+              </div>
+              {!profile?.onboarded && (
+                <Link href="/onboarding" className="mt-4 block text-sm text-cyan-300 hover:underline">
+                  Complete onboarding →
+                </Link>
+              )}
             </div>
-            {!profile?.onboarded && (
-              <Link href="/onboarding" className="text-xs text-amber-400 hover:underline mt-2 block">
-                Complete onboarding now →
+          </div>
+
+          {/* Quick Actions removed per request */}
+
+          <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
+            <h3 className="text-sm uppercase tracking-[0.25em] text-gray-400">Insights</h3>
+            <div className="mt-5 space-y-4 text-sm text-gray-300">
+              <div className="rounded-3xl bg-zinc-950/80 p-4">
+                <p className="text-xs uppercase text-gray-500">Active listings</p>
+                <p className="mt-2 text-2xl font-bold text-white">{myPostings.length}</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main className="space-y-8">
+          <section className="rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur-sm">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Overview</p>
+                <h1 className="mt-3 text-4xl font-extrabold text-white">Welcome back, {profile?.name || user?.displayName || user?.email?.split("@")[0]}</h1>
+                <p className="mt-3 text-gray-400 max-w-2xl">A quick view of your most important dashboard metrics, recommended matches, and active listings.</p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Link href="/post_property">
+                  <button className="rounded-3xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-black hover:bg-cyan-300 transition">Post Property</button>
+                </Link>
+                <Link href="/profile">
+                  <button className="rounded-3xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white hover:border-cyan-400 transition">Edit Profile</button>
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
+              <p className="text-sm uppercase tracking-[0.25em] text-gray-400">Profile status</p>
+              <p className="mt-4 text-3xl font-bold text-white">{profile?.onboarded ? "Completed" : "Incomplete"}</p>
+              <p className="mt-3 text-sm text-gray-400">{profile?.onboarded ? "Your onboarding is complete." : "Finish your profile for better matches."}</p>
+            </div>
+            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
+              <p className="text-sm uppercase tracking-[0.25em] text-gray-400">Active listings</p>
+              <p className="mt-4 text-3xl font-bold text-white">{myPostings.length}</p>
+              <p className="mt-3 text-sm text-gray-400">Manage your live property posts and view performance.</p>
+            </div>
+            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
+              <p className="text-sm uppercase tracking-[0.25em] text-gray-400">Match engagement</p>
+              <p className="mt-4 text-3xl font-bold text-white">N/A</p>
+              <p className="mt-3 text-sm text-gray-400">Compatibility feature disabled.</p>
+            </div>
+            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
+              <p className="text-sm uppercase tracking-[0.25em] text-gray-400">Quick actions</p>
+              <p className="mt-4 text-3xl font-bold text-white">{profile?.onboarded ? "Ready" : "Set up"}</p>
+              <p className="mt-3 text-sm text-gray-400">Post, browse, and update your profile quickly.</p>
+            </div>
+          </section>
+
+          {/* Recommended matches removed (compatibility disabled) */}
+
+          <section className="rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">My Listings</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">Your active property posts</h2>
+              </div>
+              <Link href="/post_property">
+                <button className="rounded-3xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-black hover:bg-cyan-300 transition">Create New Listing</button>
               </Link>
-            )}
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <div className="text-gray-500 text-xs uppercase font-semibold">My Active Postings</div>
-            <div className="text-3xl font-black mt-2 text-white">{myPostings.length}</div>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <div className="text-gray-500 text-xs uppercase font-semibold">Match Compatibility</div>
-            <div className="text-3xl font-black mt-2 text-white">
-              {profile?.onboarded ? "Enabled" : "Disabled"}
             </div>
-          </div>
-        </div>
 
-        {/* ONBOARDING CTA IF INCOMPLETE */}
-        {!profile?.onboarded && (
-          <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-white/10 rounded-[32px] p-8 text-center max-w-4xl mx-auto shadow-xl">
-            <span className="text-4xl block mb-4">🧠</span>
-            <h2 className="text-2xl font-bold mb-3">Unlock AI Compatibility Score</h2>
-            <p className="text-gray-300 text-sm max-w-xl mx-auto mb-6">
-              Complete the lifestyle onboarding quiz to see how compatible you are with listings on a scale of 0-100%!
-            </p>
-            <Link href="/onboarding">
-              <button className="px-8 py-3 bg-cyan-400 text-black rounded-xl font-bold hover:scale-[1.02] active:scale-95 transition">
-                Take Onboarding Quiz
-              </button>
-            </Link>
-          </div>
-        )}
-
-        {/* AI Matches & Recommendations */}
-        {profile?.onboarded && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span>🧠</span> Best Match Recommendations
-            </h2>
-
-            {recommendations.length === 0 ? (
-              <div className="bg-white/5 border border-white/10 rounded-[24px] p-8 text-center">
-                <p className="text-gray-400">No properties available for matching in your area yet. Post one or check back later!</p>
+            {myPostings.length === 0 ? (
+              <div className="mt-6 rounded-[28px] border border-white/10 bg-black/30 p-8 text-center text-gray-400">
+                You haven't posted any properties yet.
               </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-6">
-                {recommendations.map((property) => (
-                  <div
-                    key={property.id}
-                    onClick={() => setSelectedProperty(property)}
-                    className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-cyan-400/50 hover:scale-[1.01] transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative h-48 w-full bg-zinc-900 overflow-hidden">
+              <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {myPostings.map((property) => (
+                  <div key={property.id} className="overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/80 shadow-xl">
+                    <div className="relative h-48 w-full overflow-hidden bg-zinc-900">
                       <img
-                        src={property.image_urls && property.image_urls.length > 0 ? property.image_urls[0] : "/first.jpg"}
+                        src={property.image_urls?.[0] || "/first.jpg"}
                         alt={property.title}
-                        className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
+                        className="h-full w-full object-cover"
                       />
-                      <div className={`absolute top-4 right-4 z-10 px-3 py-1.5 rounded-full font-bold text-xs shadow-md ${
-                        property.score >= 80 ? "bg-emerald-500 text-white" :
-                        property.score >= 50 ? "bg-amber-500 text-black" :
-                        "bg-red-500 text-white"
-                      }`}>
-                        ✨ {property.score}% Match
-                      </div>
+                      <button
+                        onClick={() => handleDeletePosting(property.id)}
+                        className="absolute right-4 top-4 rounded-full border border-white/10 bg-black/60 p-2 text-red-400 transition hover:bg-red-600 hover:text-white"
+                        title="Delete Posting"
+                      >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
-                    <div className="p-5 flex flex-col flex-grow">
-                      <h3 className="text-lg font-bold line-clamp-1 group-hover:text-cyan-400 transition">{property.title}</h3>
-                      <p className="text-gray-400 text-xs line-clamp-2 mt-2">{property.description}</p>
-                      <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-xs text-gray-400">
-                        <span className="font-bold text-white text-lg">₹{property.rent.toLocaleString()}</span>
-                        <span>{property.city}</span>
+                    <div className="p-5 space-y-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white line-clamp-1">{property.title}</h3>
+                        <p className="mt-2 text-sm text-gray-400 line-clamp-2">{property.description}</p>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-gray-300">
+                        <span className="font-semibold text-white">₹{property.rent.toLocaleString()}</span>
+                        <button onClick={() => setSelectedProperty(property)} className="text-cyan-300 hover:underline">
+                          View Details
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* My Postings */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span>🏢</span> My Listed Properties
-          </h2>
-
-          {myPostings.length === 0 ? (
-            <div className="bg-white/5 border border-white/10 rounded-[24px] p-8 text-center">
-              <p className="text-gray-400 mb-6">You haven't posted any property listings yet.</p>
-              <Link href="/post_property">
-                <button className="px-6 py-2.5 bg-white/5 border border-white/20 text-white rounded-xl text-sm font-semibold hover:border-cyan-400 hover:text-cyan-400 transition">
-                  Create First Posting
-                </button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myPostings.map((property) => (
-                <div
-                  key={property.id}
-                  className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col relative"
-                >
-                  <div className="relative h-44 w-full bg-zinc-900">
-                    <img
-                      src={property.image_urls && property.image_urls.length > 0 ? property.image_urls[0] : "/first.jpg"}
-                      alt={property.title}
-                      className="object-cover w-full h-full"
-                    />
-                    <button
-                      onClick={() => handleDeletePosting(property.id)}
-                      className="absolute top-4 right-4 bg-black/60 hover:bg-red-600 hover:text-white p-2 rounded-full border border-white/10 transition text-red-400"
-                      title="Delete Posting"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="text-lg font-bold line-clamp-1">{property.title}</h3>
-                    <p className="text-gray-400 text-xs line-clamp-2 mt-2">{property.description}</p>
-                    <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-xs text-gray-400">
-                      <span className="font-bold text-white text-lg">₹{property.rent.toLocaleString()}</span>
-                      <span className="font-semibold text-cyan-400 cursor-pointer hover:underline" onClick={() => setSelectedProperty(property)}>
-                        View Details
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+          </section>
+        </main>
       </div>
 
-      {/* DETAILED DIALOG MODAL (Identical to Listings page for consistency) */}
       {selectedProperty && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto backdrop-blur-md animate-fadeIn">
           <div className="bg-zinc-950 border border-white/15 rounded-[36px] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl relative">

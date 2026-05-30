@@ -92,10 +92,10 @@ export default function PostPropertyPage() {
       alert("Only image files are allowed.");
     }
 
-    setFormData({
-      ...formData,
-      images: files,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...files],
+    }));
   };
 
   const getCurrentLocation = () => {
@@ -176,100 +176,17 @@ export default function PostPropertyPage() {
         }
       }
 
-      // =========================
-      // INSERT PROPERTY
-      // =========================
-
-      const { data: propertyData, error: propertyError } =
-        await supabase
-          .from("properties")
-          .insert([
-            {
-              user_id: user.uid,
-
-            // PROPERTY DETAILS
-            title: formData.title,
-            description: formData.description,
-            rent: Number(formData.rent),
-            deposit: Number(formData.deposit),
-            property_type: formData.propertyType,
-            available_from: formData.availableFrom,
-
-            // ROOM DETAILS
-            room_type: formData.roomType,
-            current_flatmates: Number(
-              formData.currentFlatmates
-            ),
-            bathroom_type: formData.bathroomType,
-            furnishing: formData.furnishing,
-
-            // LOCATION
-            address: formData.address,
-            city: formData.city,
-            latitude: formData.latitude,
-            longitude: formData.longitude,
-
-            // FLAT VIBE
-            flat_vibe: formData.flatVibe,
-            current_occupants: formData.currentOccupants,
-            visitors_policy: formData.visitorsPolicy,
-
-            // FLATMATE PREFERENCES
-            gender_preference:
-              formData.genderPreference,
-            food_habit: formData.foodHabit,
-            smoking: formData.smoking,
-            drinking: formData.drinking,
-            occupation: formData.occupation,
-            sleep_schedule: formData.sleepSchedule,
-            cleanliness: formData.cleanliness,
-            guest_preference:
-              formData.guestPreference,
-            pets: formData.pets,
-            party_frequency:
-              formData.partyFrequency,
-            work_from_home:
-              formData.workFromHome,
-            noise_tolerance:
-              formData.noiseTolerance,
-            social_level: formData.socialLevel,
-            overnight_guests:
-              formData.overnightGuests,
-            sharing_preference:
-              formData.sharingPreference,
-            language_preference:
-              formData.languagePreference,
-            gym_lifestyle:
-              formData.gymLifestyle,
-
-            // AI MATCHING
-            ideal_flatmate:
-              formData.idealFlatmate,
-
-            // CONTACT
-            contact_name: formData.name,
-            age: Number(formData.age),
-            phone: formData.phone,
-          },
-        ])
-        .select()
-        .single();
-
-    if (propertyError) {
-      console.error(propertyError);
-      alert(`Failed to save property: ${propertyError.message}`);
-      return;
-    }
-
-    // =========================
-    // UPLOAD IMAGES
-    // =========================
 
     const uploadedImageUrls: string[] = [];
+    const uploadedImagePaths: string[] = [];
 
     for (let i = 0; i < formData.images.length; i++) {
       const image = formData.images[i];
-      const filePath = `${propertyData.id}/${Date.now()}-${i}-${image.name}`;
+      const uniqueId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const filePath = `${user.uid}/${uniqueId}-${i}-${image.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from("Images")
@@ -280,6 +197,8 @@ export default function PostPropertyPage() {
         continue;
       }
 
+      uploadedImagePaths.push(filePath);
+
       const { data: publicUrlData } = supabase.storage
         .from("Images")
         .getPublicUrl(filePath);
@@ -288,7 +207,10 @@ export default function PostPropertyPage() {
     }
 
     if (uploadedImageUrls.length < MIN_PROPERTY_IMAGES) {
-      await supabase.from("properties").delete().eq("id", propertyData.id);
+      if (uploadedImagePaths.length > 0) {
+        await supabase.storage.from("Images").remove(uploadedImagePaths);
+      }
+
       alert(
         `Upload failed: need at least ${MIN_PROPERTY_IMAGES} images, but only ${uploadedImageUrls.length} uploaded. Check Storage policies and try again.`
       );
@@ -296,20 +218,66 @@ export default function PostPropertyPage() {
     }
 
     // =========================
-    // SAVE IMAGE URLS
+    // INSERT PROPERTY WITH IMAGE URLS
     // =========================
 
-    const { error: updateError } = await supabase
-      .from("properties")
-      .update({
-        image_urls: uploadedImageUrls,
-      })
-      .eq("id", propertyData.id);
+    const { data: finalPropertyData, error: finalPropertyError } =
+      await supabase
+        .from("properties")
+        .insert([
+          {
+            user_id: user.uid,
+            title: formData.title,
+            description: formData.description,
+            rent: Number(formData.rent),
+            deposit: Number(formData.deposit),
+            property_type: formData.propertyType,
+            available_from: formData.availableFrom,
+            room_type: formData.roomType,
+            current_flatmates: Number(formData.currentFlatmates),
+            bathroom_type: formData.bathroomType,
+            furnishing: formData.furnishing,
+            address: formData.address,
+            city: formData.city,
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+            flat_vibe: formData.flatVibe,
+            current_occupants: formData.currentOccupants,
+            visitors_policy: formData.visitorsPolicy,
+            gender_preference: formData.genderPreference,
+            food_habit: formData.foodHabit,
+            smoking: formData.smoking,
+            drinking: formData.drinking,
+            occupation: formData.occupation,
+            sleep_schedule: formData.sleepSchedule,
+            cleanliness: formData.cleanliness,
+            guest_preference: formData.guestPreference,
+            pets: formData.pets,
+            party_frequency: formData.partyFrequency,
+            work_from_home: formData.workFromHome,
+            noise_tolerance: formData.noiseTolerance,
+            social_level: formData.socialLevel,
+            overnight_guests: formData.overnightGuests,
+            sharing_preference: formData.sharingPreference,
+            language_preference: formData.languagePreference,
+            gym_lifestyle: formData.gymLifestyle,
+            ideal_flatmate: formData.idealFlatmate,
+            contact_name: formData.name,
+            age: Number(formData.age),
+            phone: formData.phone,
+            image_urls: uploadedImageUrls,
+          },
+        ])
+        .select()
+        .single();
 
-    if (updateError) {
-      console.error(updateError);
-      await supabase.from("properties").delete().eq("id", propertyData.id);
-      alert(`Images uploaded but saving URLs failed: ${updateError.message}`);
+    if (finalPropertyError) {
+      console.error(finalPropertyError);
+      if (uploadedImagePaths.length > 0) {
+        await supabase.storage.from("Images").remove(uploadedImagePaths);
+      }
+
+      alert(`Failed to save property: ${finalPropertyError.message}`);
       return;
     }
 
