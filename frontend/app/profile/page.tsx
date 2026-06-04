@@ -65,14 +65,18 @@ export default function ProfilePage() {
     }
 
     async function fetchProfile() {
+      if (!user) return;
+    
       setLoading(true);
+    
       try {
+        const userId = user.uid;
+    
         const { data, error } = await supabase
           .from("users")
           .select("*")
-          .eq("id", user.uid)
+          .eq("id", userId)
           .maybeSingle();
-
         if (error) throw error;
 
         if (data) {
