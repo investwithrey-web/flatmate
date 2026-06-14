@@ -140,7 +140,7 @@ export default function OnboardingContent() {
           overnight_guests: formData.overnightGuests,
           onboarded: true,
         })
-        .eq("id", user.uid);
+        .eq("id", user.id);
 
       if (error) {
         throw error;
@@ -403,16 +403,25 @@ export default function OnboardingContent() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="block mb-3 text-sm text-gray-300">Maximum Monthly Rent (INR / Budget)</label>
-                  <input
-                    type="number"
+                  <select
                     name="budget"
-                    placeholder="e.g. 15000"
                     value={formData.budget}
                     onChange={handleChange}
                     className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
-                    min="1"
                     required
-                  />
+                  >
+                    <option value="">Select Range</option>
+                    <option value="10000">5k - 10k</option>
+                    <option value="15000">10k - 15k</option>
+                    <option value="20000">15k - 20k</option>
+                    <option value="25000">20k - 25k</option>
+                    <option value="30000">25k - 30k</option>
+                    <option value="40000">30k - 40k</option>
+                    <option value="50000">40k - 50k</option>
+                    <option value="75000">50k - 75k</option>
+                    <option value="100000">75k - 1 Lakh</option>
+                    <option value="100001">1 Lakh+</option>
+                  </select>
                 </div>
 
                 <div>

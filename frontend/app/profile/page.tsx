@@ -70,7 +70,7 @@ export default function ProfilePage() {
       setLoading(true);
     
       try {
-        const userId = user.uid;
+        const userId = user.id;
     
         const { data, error } = await supabase
           .from("users")
@@ -148,7 +148,7 @@ export default function ProfilePage() {
           noise_tolerance: formData.noise_tolerance,
           overnight_guests: formData.overnight_guests,
         })
-        .eq("id", user.uid);
+        .eq("id", user.id);
 
       if (error) throw error;
 

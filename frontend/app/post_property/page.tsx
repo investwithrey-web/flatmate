@@ -165,14 +165,14 @@ export default function PostPropertyPage() {
       const { data: dbUser } = await supabase
         .from("users")
         .select("id")
-        .eq("id", user.uid)
+        .eq("id", user.id)
         .maybeSingle();
 
       if (!dbUser) {
         const { error: userSyncError } = await supabase.from("users").upsert({
-          id: user.uid,
+          id: user.id,
           email: user.email ?? "",
-          name: user.displayName || user.email?.split("@")[0] || "User",
+          name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
           provider: "email",
         });
 
@@ -192,7 +192,7 @@ export default function PostPropertyPage() {
           typeof crypto !== "undefined" && "randomUUID" in crypto
             ? crypto.randomUUID()
             : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-        const filePath = `${user.uid}/${uniqueId}-${i}-${image.name}`;
+        const filePath = `${user.id}/${uniqueId}-${i}-${image.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from("Images")
@@ -221,7 +221,7 @@ export default function PostPropertyPage() {
           .from("properties")
           .insert([
             {
-              user_id: user.uid,
+              user_id: user.id,
               title: formData.title,
               description: formData.description,
               rent: Number(formData.rent),

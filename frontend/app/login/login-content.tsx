@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginContent() {
@@ -31,24 +29,13 @@ export default function LoginContent() {
     setLoading(true);
 
     try {
-      // 1. Sign in with Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // 2. Double check if profile exists in Supabase, create if missing (failsafe)
-      const { data: dbUser } = await supabase
-        .from("users")
-        .select("id")
-        .eq("id", firebaseUser.uid)
-        .maybeSingle();
-
-      if (!dbUser) {
-        await supabase.from("users").upsert({
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName || email.split("@")[0],
-          provider: "email",
-        });
+      if (error) {
+        throw error;
       }
 
       router.push("/dashboard");
@@ -65,24 +52,14 @@ export default function LoginContent() {
   // ======================
   const handleGoogleLogin = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Sync user profile to Supabase database
-      await supabase.from("users").upsert(
-        {
-          id: user.uid,
-          email: user.email,
-          name: user.displayName,
-          image: user.photoURL,
-          phone: null,
-          provider: "google",
-        },
-        { onConflict: "email" }
-      );
-
-      router.push("/dashboard");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) throw error;
+      // Note: Redirect happens automatically, no need for router.push()
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Google sign-in failed.");

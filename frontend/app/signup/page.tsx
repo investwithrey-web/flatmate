@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { supabase } from "@/lib/supabase";
 
 export default function SignupPage() {
@@ -37,39 +35,39 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      // 1. Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
-
-      // 2. Set user display name in Firebase
-      await updateProfile(firebaseUser, { displayName: name });
-
-      // 3. Upsert user into Supabase users table
-      const { error } = await supabase.from("users").upsert(
-        {
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name,
-          phone,
-          provider: "email",
-        },
-        { onConflict: "email" }
-      );
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            phone: phone || null,
+          }
+        }
+      });
 
       if (error) {
-        console.error("DB Sync Error:", error);
+        throw error;
+      }
+
+      // Sync user to public.users table immediately if user is created
+      if (data.user) {
+        await supabase.from("users").upsert(
+          {
+            id: data.user.id,
+            email: data.user.email,
+            name,
+            phone: phone || null,
+            provider: "email",
+          },
+          { onConflict: "email" }
+        );
       }
 
       router.push("/login?registered=true");
     } catch (err: any) {
       console.error(err);
-      if (err.code === "auth/weak-password") {
-        alert("Password must be at least 6 characters long.");
-      } else if (err.code === "auth/operation-not-allowed") {
-        alert("Email/password signup is not enabled. Enable it in Firebase Authentication settings.");
-      } else {
-        alert(err.message || "Something went wrong during signup");
-      }
+      alert(err.message || "Something went wrong during signup");
     } finally {
       setLoading(false);
     }
@@ -80,27 +78,14 @@ export default function SignupPage() {
   // ======================
   const handleGoogleSignup = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      const { error } = await supabase.from("users").upsert(
-        {
-          id: user.uid,
-          email: user.email,
-          name: user.displayName,
-          image: user.photoURL,
-          phone: null,
-          provider: "google",
-        },
-        { onConflict: "email" }
-      );
-
-      if (error) {
-        console.error("DB Sync Error:", error);
-      }
-
-      router.push("/dashboard");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) throw error;
+      // Note: Redirect happens automatically
     } catch (error: any) {
       console.error(error);
       alert(error.message || "Google signup failed");

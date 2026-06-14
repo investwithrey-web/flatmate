@@ -211,7 +211,7 @@ export default function ListingsContent() {
           social_level: preferenceForm.socialLevel,
           onboarded: true,
         })
-        .eq("id", user.uid);
+        .eq("id", user.id);
 
       if (updateError) {
         throw new Error("Failed to save preferences to your profile.");
@@ -293,7 +293,7 @@ export default function ListingsContent() {
           const { data: uData, error: uErr } = await supabase
             .from("users")
             .select("id, onboarded, gender, food_habit, smoking, drinking, budget, social_level, sleep_schedule, cleanliness")
-            .eq("id", user.uid)
+            .eq("id", user.id)
             .maybeSingle();
 
           if (!uErr && uData) {
@@ -368,7 +368,7 @@ export default function ListingsContent() {
     return matchesCity && matchesRent && matchesPropType && matchesRoomType && matchesFurnishing;
   });
 
-  const ownSelectedProperty = selectedProperty && user ? selectedProperty.user_id === user.uid : false;
+  const ownSelectedProperty = selectedProperty && user ? selectedProperty.user_id === user.id : false;
 
   return (
     <div className="min-h-screen bg-black text-white px-6 py-12 relative">
@@ -521,7 +521,7 @@ export default function ListingsContent() {
                   const backendInfo = backendScores[property.id];
                   const hasScore = !!backendInfo && !skipMatching;
                   const score = backendInfo ? backendInfo.score : 0;
-                  const isOwnProperty = user && property.user_id === user.uid;
+                  const isOwnProperty = user && property.user_id === user.id;
 
                   return (
                     <div
@@ -658,13 +658,24 @@ export default function ListingsContent() {
                   <div className="grid gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Monthly budget (INR)</label>
-                      <input
-                        type="number"
+                      <select
                         name="budget"
                         value={preferenceForm.budget}
                         onChange={handlePreferenceChange}
                         className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
-                      />
+                      >
+                        <option value="">Select Range</option>
+                        <option value="10000">5k - 10k</option>
+                        <option value="15000">10k - 15k</option>
+                        <option value="20000">15k - 20k</option>
+                        <option value="25000">20k - 25k</option>
+                        <option value="30000">25k - 30k</option>
+                        <option value="40000">30k - 40k</option>
+                        <option value="50000">40k - 50k</option>
+                        <option value="75000">50k - 75k</option>
+                        <option value="100000">75k - 1 Lakh</option>
+                        <option value="100001">1 Lakh+</option>
+                      </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -951,13 +962,24 @@ export default function ListingsContent() {
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm text-gray-300 mb-2">Monthly budget (INR)</label>
-                      <input
-                        type="number"
+                      <select
                         name="budget"
                         value={preferenceForm.budget}
                         onChange={handlePreferenceChange}
                         className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
-                      />
+                      >
+                        <option value="">Select Range</option>
+                        <option value="10000">5k - 10k</option>
+                        <option value="15000">10k - 15k</option>
+                        <option value="20000">15k - 20k</option>
+                        <option value="25000">20k - 25k</option>
+                        <option value="30000">25k - 30k</option>
+                        <option value="40000">30k - 40k</option>
+                        <option value="50000">40k - 50k</option>
+                        <option value="75000">50k - 75k</option>
+                        <option value="100000">75k - 1 Lakh</option>
+                        <option value="100001">1 Lakh+</option>
+                      </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>

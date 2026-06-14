@@ -168,7 +168,7 @@ export default function DashboardPage() {
         <aside className="space-y-6">
           <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm">
             <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Dashboard</p>
-            <h2 className="mt-4 text-3xl font-extrabold text-white">Hello, {profile?.name || user?.displayName || user?.email?.split("@")[0]}</h2>
+            <h2 className="mt-4 text-3xl font-extrabold text-white">Hello, {profile?.name || user?.user_metadata?.full_name || user?.email?.split("@")[0]}</h2>
             <p className="mt-3 text-gray-400 text-sm leading-relaxed">Your flatmate hub for listings, matches and property insights.</p>
 
             <div className="mt-6 rounded-3xl bg-zinc-950/80 p-5 border border-cyan-400/10">
@@ -207,7 +207,7 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Overview</p>
-                <h1 className="mt-3 text-4xl font-extrabold text-white">Welcome back, {profile?.name || user?.displayName || user?.email?.split("@")[0]}</h1>
+                <h1 className="mt-3 text-4xl font-extrabold text-white">Welcome back, {profile?.name || user?.user_metadata?.full_name || user?.email?.split("@")[0]}</h1>
                 <p className="mt-3 text-gray-400 max-w-2xl">A quick view of your most important dashboard metrics, recommended matches, and active listings.</p>
               </div>
 
