@@ -152,7 +152,7 @@ export default function ListingsContent() {
     // On the listings grid, open the inline preference modal so the user
     // can fill preferences in-place. Do not redirect to onboarding.
     setSelectedProperty(property);
-    
+
     if (userProfile?.onboarded || adhocPreferences) {
       setSkipMatching(false);
       setShowPreferencePrompt(false);
@@ -212,11 +212,11 @@ export default function ListingsContent() {
           onboarded: true,
         })
         .eq("id", user.uid);
-        
+
       if (updateError) {
         throw new Error("Failed to save preferences to your profile.");
       }
-      
+
       setUserProfile((prev) => prev ? {
         ...prev,
         budget: Number(preferenceForm.budget),
@@ -358,8 +358,8 @@ export default function ListingsContent() {
   // FILTERING LOGIC
   // ======================
   const filteredProperties = sortedProperties.filter((prop) => {
-    const matchesCity = prop.city?.toLowerCase().includes(searchCity.toLowerCase()) || 
-                        prop.address?.toLowerCase().includes(searchCity.toLowerCase());
+    const matchesCity = prop.city?.toLowerCase().includes(searchCity.toLowerCase()) ||
+      prop.address?.toLowerCase().includes(searchCity.toLowerCase());
     const matchesRent = maxRent === "" || prop.rent <= Number(maxRent);
     const matchesPropType = propertyType === "" || prop.property_type === propertyType;
     const matchesRoomType = roomType === "" || prop.room_type === roomType;
@@ -376,7 +376,7 @@ export default function ListingsContent() {
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/10 via-black to-purple-950/10 z-0 pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        
+
         {/* Title */}
         <div className="mb-10 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 text-transparent bg-clip-text">
@@ -391,7 +391,7 @@ export default function ListingsContent() {
         <div className="bg-white/5 border border-white/10 rounded-[24px] p-6 mb-12 backdrop-blur-xl">
           <h2 className="text-xl font-bold mb-4 text-cyan-400">Search & Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            
+
             {/* Search City */}
             <input
               type="text"
@@ -466,11 +466,10 @@ export default function ListingsContent() {
                     <div key={property.id} className="rounded-3xl border border-white/10 bg-zinc-950 p-4">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xs uppercase tracking-[0.3em] text-cyan-300">#{index + 1}</span>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          property.score >= 80 ? "bg-emerald-500/20 text-emerald-300" :
-                          property.score >= 50 ? "bg-amber-500/20 text-amber-300" :
-                          "bg-red-500/20 text-red-300"
-                        }`}>{property.score}% match</span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${property.score >= 80 ? "bg-emerald-500/20 text-emerald-300" :
+                            property.score >= 50 ? "bg-amber-500/20 text-amber-300" :
+                              "bg-red-500/20 text-red-300"
+                          }`}>{property.score}% match</span>
                       </div>
                       <h3 className="mt-3 text-lg font-bold text-white">{property.title}</h3>
                       <p className="mt-2 text-gray-400 text-sm line-clamp-2">{property.description}</p>
@@ -547,11 +546,10 @@ export default function ListingsContent() {
                               Your Listing
                             </div>
                           ) : hasScore ? (
-                            <div className={`px-4 py-2 rounded-full font-bold text-sm shadow-md backdrop-blur-md ${
-                              score >= 80 ? "bg-emerald-500/90 text-white" :
-                              score >= 50 ? "bg-amber-500/90 text-black" :
-                              "bg-red-500/90 text-white"
-                            }`}>
+                            <div className={`px-4 py-2 rounded-full font-bold text-sm shadow-md backdrop-blur-md ${score >= 80 ? "bg-emerald-500/90 text-white" :
+                                score >= 50 ? "bg-amber-500/90 text-black" :
+                                  "bg-red-500/90 text-white"
+                              }`}>
                               ✨ {score}% Match
                             </div>
                           ) : (
@@ -603,13 +601,13 @@ export default function ListingsContent() {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400/20 to-blue-500/20 border border-cyan-400/30 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.15)]">
-                     <span className="text-2xl">✨</span>
-                   </div>
-                   <div>
-                     <p className="text-xs uppercase tracking-[0.2em] text-cyan-400 font-bold mb-1">AI Assistant</p>
-                     <h2 className="text-xl font-bold text-white">Find Your Match</h2>
-                   </div>
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400/20 to-blue-500/20 border border-cyan-400/30 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-400 font-bold mb-1">AI Assistant</p>
+                    <h2 className="text-xl font-bold text-white">Find Your Match</h2>
+                  </div>
                 </div>
                 {selectedProperty ? (
                   <button
@@ -633,12 +631,12 @@ export default function ListingsContent() {
               <div className="space-y-6">
                 <div className="rounded-[24px] border border-white/10 bg-white/5 p-2 flex gap-4 items-center">
                   <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-900 flex-shrink-0 relative">
-                     <img 
-                       src={selectedProperty.image_urls && selectedProperty.image_urls.length > 0 ? selectedProperty.image_urls[0] : "/first.jpg"} 
-                       alt={selectedProperty.title}
-                       className="w-full h-full object-cover"
-                     />
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <img
+                      src={selectedProperty.image_urls && selectedProperty.image_urls.length > 0 ? selectedProperty.image_urls[0] : "/first.jpg"}
+                      alt={selectedProperty.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   </div>
                   <div className="py-2 pr-4">
                     <h3 className="text-sm font-bold text-white line-clamp-1">{selectedProperty.title}</h3>
@@ -652,7 +650,7 @@ export default function ListingsContent() {
                 <div className="rounded-[24px] border border-white/10 bg-black/40 p-6 shadow-inner space-y-5">
                   <div>
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                       <span>🎯</span> Your Preferences
+                      <span>🎯</span> Your Preferences
                     </h3>
                     <p className="text-gray-400 text-sm mt-1">Tell us a bit about yourself so our AI can calculate the match score.</p>
                   </div>
@@ -851,7 +849,7 @@ export default function ListingsContent() {
                         </>
                       ) : (
                         <>
-                           <span>⚡</span> Reveal AI Match Score
+                          <span>⚡</span> Reveal AI Match Score
                         </>
                       )}
                     </button>
@@ -872,10 +870,10 @@ export default function ListingsContent() {
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"></div>
                     <div className="text-center py-2 mb-2">
                       <div className="inline-flex items-center justify-center w-24 h-24 rounded-full border-[4px] border-cyan-400/20 mb-3 relative">
-                         <div className="absolute inset-0 rounded-full border-[4px] border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' }}></div>
-                         <span className="text-4xl font-extrabold text-white">
-                           {backendScores[selectedProperty.id]?.score ?? 0}<span className="text-2xl text-cyan-400">%</span>
-                         </span>
+                        <div className="absolute inset-0 rounded-full border-[4px] border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' }}></div>
+                        <span className="text-4xl font-extrabold text-white">
+                          {backendScores[selectedProperty.id]?.score ?? 0}<span className="text-2xl text-cyan-400">%</span>
+                        </span>
                       </div>
                       <span className="text-gray-300 text-sm font-medium block">Overall Compatibility</span>
                     </div>
@@ -901,7 +899,7 @@ export default function ListingsContent() {
                 {skipMatching && (
                   <div className="rounded-[24px] border border-white/10 bg-black/40 p-6 text-center">
                     <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                       <span className="text-xl">🙈</span>
+                      <span className="text-xl">🙈</span>
                     </div>
                     <p className="text-gray-300 text-sm">You skipped the AI match. Preferences can be updated anytime.</p>
                   </div>
@@ -1160,7 +1158,7 @@ export default function ListingsContent() {
         {selectedProperty && !showPreferencePrompt && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto backdrop-blur-md animate-fadeIn">
             <div className="bg-zinc-950 border border-white/15 rounded-[36px] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl relative">
-              
+
               {/* Close Button */}
               <button
                 onClick={() => {
@@ -1179,10 +1177,9 @@ export default function ListingsContent() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-2">
                 {selectedProperty.image_urls && selectedProperty.image_urls.length > 0 ? (
                   selectedProperty.image_urls.slice(0, 3).map((img, i) => (
-                    <div key={i} className={`relative h-60 rounded-2xl overflow-hidden bg-zinc-900 ${
-                      selectedProperty.image_urls.length === 1 ? "md:col-span-3" :
-                      selectedProperty.image_urls.length === 2 && i === 0 ? "md:col-span-2" : ""
-                    }`}>
+                    <div key={i} className={`relative h-60 rounded-2xl overflow-hidden bg-zinc-900 ${selectedProperty.image_urls.length === 1 ? "md:col-span-3" :
+                        selectedProperty.image_urls.length === 2 && i === 0 ? "md:col-span-2" : ""
+                      }`}>
                       <img src={img} alt="Property" className="object-cover w-full h-full" />
                     </div>
                   ))
@@ -1214,7 +1211,7 @@ export default function ListingsContent() {
 
                 {/* Grid Details */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  
+
                   {/* Left Column: Description & Specs */}
                   <div className="md:col-span-2 space-y-8">
                     <div>
@@ -1262,7 +1259,7 @@ export default function ListingsContent() {
 
                   {/* Right Column: Match Analysis & Contact */}
                   <div className="space-y-8">
-                    
+
                     {/* Compatibility Score Breakdown */}
                     <div className="bg-gradient-to-br from-cyan-950/20 to-purple-950/20 border border-white/15 rounded-3xl p-6">
                       <h3 className="text-lg font-bold mb-4 text-white">Match Compatibility</h3>
