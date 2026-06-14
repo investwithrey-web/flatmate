@@ -1032,6 +1032,93 @@ export default function ListingsContent() {
                         <option value="Social">Social</option>
                       </select>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-2">Room Type</label>
+                        <select
+                          name="roomType"
+                          value={preferenceForm.roomType}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
+                        >
+                          <option value="">Any</option>
+                          <option value="Private Room">Private Room</option>
+                          <option value="Double Shared Room">Double Shared Room</option>
+                          <option value="Triple Shared Room">Triple Shared Room</option>
+                          <option value="Entire Flat">Entire Flat</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-2">Move-in Date</label>
+                        <input
+                          type="date"
+                          name="moveInDate"
+                          value={preferenceForm.moveInDate}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-2">Need Parking?</label>
+                        <select
+                          name="parkingRequired"
+                          value={preferenceForm.parkingRequired}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
+                        >
+                          <option value="">No preference</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      {preferenceForm.parkingRequired === "Yes" && (
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-2">Vehicle Type</label>
+                          <select
+                            name="vehicleType"
+                            value={preferenceForm.vehicleType}
+                            onChange={handlePreferenceChange}
+                            className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
+                          >
+                            <option value="">Any</option>
+                            <option value="2 Wheeler">2 Wheeler</option>
+                            <option value="4 Wheeler">4 Wheeler</option>
+                            <option value="Both">Both</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-2">Need Lift?</label>
+                        <select
+                          name="liftRequired"
+                          value={preferenceForm.liftRequired}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
+                        >
+                          <option value="">No preference</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-2">Preferred Floor</label>
+                        <input
+                          type="number"
+                          name="floorPreference"
+                          placeholder="e.g. 2"
+                          value={preferenceForm.floorPreference}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-cyan-400 transition"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {promptError && (
