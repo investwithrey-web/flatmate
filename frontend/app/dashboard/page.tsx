@@ -86,7 +86,7 @@ export default function DashboardPage() {
       return;
     }
 
-    const userId = user!.uid;
+    const userId = user!.id;
 
     async function fetchDashboardData() {
       setLoading(true);
