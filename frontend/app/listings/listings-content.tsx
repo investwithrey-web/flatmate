@@ -98,6 +98,12 @@ export default function ListingsContent() {
     smoking: "",
     drinking: "",
     socialLevel: "",
+    roomType: "",
+    moveInDate: "",
+    parkingRequired: "",
+    vehicleType: "",
+    floorPreference: "",
+    liftRequired: "",
   });
 
   const [backendScores, setBackendScores] = useState<Record<string, { score: number; details: string[] }>>({});
@@ -234,6 +240,12 @@ export default function ListingsContent() {
         cleanliness: "No preference",
         socialLevel: preferenceForm.socialLevel,
         flatmateStyle: "No preference",
+        roomType: preferenceForm.roomType || "Any",
+        moveInDate: preferenceForm.moveInDate || "",
+        parkingRequired: preferenceForm.parkingRequired || "No preference",
+        vehicleType: preferenceForm.vehicleType || "Any",
+        floorPreference: preferenceForm.floorPreference || "",
+        liftRequired: preferenceForm.liftRequired || "No preference",
       };
 
       const result = await fetchAiMatches(prefs);
@@ -730,6 +742,93 @@ export default function ListingsContent() {
                         <option value="Moderate">Moderate</option>
                         <option value="Social">Social</option>
                       </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Room Type</label>
+                        <select
+                          name="roomType"
+                          value={preferenceForm.roomType}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
+                        >
+                          <option value="">Any</option>
+                          <option value="Private Room">Private Room</option>
+                          <option value="Double Shared Room">Double Shared Room</option>
+                          <option value="Triple Shared Room">Triple Shared Room</option>
+                          <option value="Entire Flat">Entire Flat</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Move-in Date</label>
+                        <input
+                          type="date"
+                          name="moveInDate"
+                          value={preferenceForm.moveInDate}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Need Parking?</label>
+                        <select
+                          name="parkingRequired"
+                          value={preferenceForm.parkingRequired}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
+                        >
+                          <option value="">No preference</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      {preferenceForm.parkingRequired === "Yes" && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Vehicle Type</label>
+                          <select
+                            name="vehicleType"
+                            value={preferenceForm.vehicleType}
+                            onChange={handlePreferenceChange}
+                            className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
+                          >
+                            <option value="">Any</option>
+                            <option value="2 Wheeler">2 Wheeler</option>
+                            <option value="4 Wheeler">4 Wheeler</option>
+                            <option value="Both">Both</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Need Lift?</label>
+                        <select
+                          name="liftRequired"
+                          value={preferenceForm.liftRequired}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
+                        >
+                          <option value="">No preference</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Preferred Floor</label>
+                        <input
+                          type="number"
+                          name="floorPreference"
+                          placeholder="e.g. 2"
+                          value={preferenceForm.floorPreference}
+                          onChange={handlePreferenceChange}
+                          className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-white outline-none focus:border-cyan-400 transition text-sm"
+                        />
+                      </div>
                     </div>
                   </div>
 
