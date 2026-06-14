@@ -921,8 +921,9 @@ export default function ListingsContent() {
 
         {/* PREFERENCE PROMPT MODAL */}
         {showPreferencePrompt && promptProperty && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md animate-fadeIn">
-            <div className="bg-zinc-950 border border-white/15 rounded-[36px] w-full max-w-xl p-8 shadow-2xl">
+          <div className="fixed inset-0 bg-black/80 z-50 overflow-y-auto backdrop-blur-md animate-fadeIn">
+            <div className="flex min-h-full items-center justify-center p-4 py-12">
+              <div className="bg-zinc-950 border border-white/15 rounded-[36px] w-full max-w-xl p-8 shadow-2xl">
               <div className="flex items-start justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-extrabold text-white">Complete your preferences</h2>
@@ -1152,6 +1153,7 @@ export default function ListingsContent() {
               </div>
             </div>
           </div>
+        </div>
         )}
 
         {/* PROPERTY DETAIL MODAL */}
