@@ -183,112 +183,112 @@ export default function PostPropertyPage() {
       }
 
 
-    const uploadedImageUrls: string[] = [];
-    const uploadedImagePaths: string[] = [];
+      const uploadedImageUrls: string[] = [];
+      const uploadedImagePaths: string[] = [];
 
-    for (let i = 0; i < formData.images.length; i++) {
-      const image = formData.images[i];
-      const uniqueId =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      const filePath = `${user.uid}/${uniqueId}-${i}-${image.name}`;
+      for (let i = 0; i < formData.images.length; i++) {
+        const image = formData.images[i];
+        const uniqueId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        const filePath = `${user.uid}/${uniqueId}-${i}-${image.name}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("Images")
-        .upload(filePath, image);
+        const { error: uploadError } = await supabase.storage
+          .from("Images")
+          .upload(filePath, image);
 
-      if (uploadError) {
-        console.error(uploadError);
-        continue;
+        if (uploadError) {
+          console.error(uploadError);
+          continue;
+        }
+
+        uploadedImagePaths.push(filePath);
+
+        const { data: publicUrlData } = supabase.storage
+          .from("Images")
+          .getPublicUrl(filePath);
+
+        uploadedImageUrls.push(publicUrlData.publicUrl);
       }
 
-      uploadedImagePaths.push(filePath);
+      // =========================
+      // INSERT PROPERTY WITH IMAGE URLS
+      // =========================
 
-      const { data: publicUrlData } = supabase.storage
-        .from("Images")
-        .getPublicUrl(filePath);
+      const { data: finalPropertyData, error: finalPropertyError } =
+        await supabase
+          .from("properties")
+          .insert([
+            {
+              user_id: user.uid,
+              title: formData.title,
+              description: formData.description,
+              rent: Number(formData.rent),
+              deposit: Number(formData.deposit),
+              property_type: formData.propertyType,
+              available_from: formData.availableFrom,
+              room_type: formData.roomType,
+              current_flatmates: Number(formData.currentFlatmates),
+              bathroom_type: formData.bathroomType,
+              furnishing: formData.furnishing,
+              address: formData.address,
+              city: formData.city,
+              latitude: formData.latitude,
+              longitude: formData.longitude,
+              flat_vibe: formData.flatVibe,
+              current_occupants: formData.currentOccupants,
+              visitors_policy: formData.visitorsPolicy,
+              gender_preference: formData.genderPreference,
+              food_habit: formData.foodHabit,
+              smoking: formData.smoking,
+              drinking: formData.drinking,
+              occupation: formData.occupation,
+              sleep_schedule: formData.sleepSchedule,
+              cleanliness: formData.cleanliness,
+              guest_preference: formData.guestPreference,
+              pets: formData.pets,
+              party_frequency: formData.partyFrequency,
+              work_from_home: formData.workFromHome,
+              noise_tolerance: formData.noiseTolerance,
+              social_level: formData.socialLevel,
+              overnight_guests: formData.overnightGuests,
+              sharing_preference: formData.sharingPreference,
+              language_preference: formData.languagePreference,
+              gym_lifestyle: formData.gymLifestyle,
+              ideal_flatmate: formData.idealFlatmate,
+              contact_name: formData.name,
+              age: Number(formData.age),
+              phone: formData.phone,
+              image_urls: uploadedImageUrls,
+              parking_available: formData.parkingAvailable,
+              vehicle_type: formData.vehicleType,
+              floor_number: formData.floorNumber,
+              has_lift: formData.hasLift,
+            },
+          ])
+          .select()
+          .single();
 
-      uploadedImageUrls.push(publicUrlData.publicUrl);
-    }
+      if (finalPropertyError) {
+        console.error(finalPropertyError);
+        if (uploadedImagePaths.length > 0) {
+          await supabase.storage.from("Images").remove(uploadedImagePaths);
+        }
 
-    // =========================
-    // INSERT PROPERTY WITH IMAGE URLS
-    // =========================
-
-    const { data: finalPropertyData, error: finalPropertyError } =
-      await supabase
-        .from("properties")
-        .insert([
-          {
-            user_id: user.uid,
-            title: formData.title,
-            description: formData.description,
-            rent: Number(formData.rent),
-            deposit: Number(formData.deposit),
-            property_type: formData.propertyType,
-            available_from: formData.availableFrom,
-            room_type: formData.roomType,
-            current_flatmates: Number(formData.currentFlatmates),
-            bathroom_type: formData.bathroomType,
-            furnishing: formData.furnishing,
-            address: formData.address,
-            city: formData.city,
-            latitude: formData.latitude,
-            longitude: formData.longitude,
-            flat_vibe: formData.flatVibe,
-            current_occupants: formData.currentOccupants,
-            visitors_policy: formData.visitorsPolicy,
-            gender_preference: formData.genderPreference,
-            food_habit: formData.foodHabit,
-            smoking: formData.smoking,
-            drinking: formData.drinking,
-            occupation: formData.occupation,
-            sleep_schedule: formData.sleepSchedule,
-            cleanliness: formData.cleanliness,
-            guest_preference: formData.guestPreference,
-            pets: formData.pets,
-            party_frequency: formData.partyFrequency,
-            work_from_home: formData.workFromHome,
-            noise_tolerance: formData.noiseTolerance,
-            social_level: formData.socialLevel,
-            overnight_guests: formData.overnightGuests,
-            sharing_preference: formData.sharingPreference,
-            language_preference: formData.languagePreference,
-            gym_lifestyle: formData.gymLifestyle,
-            ideal_flatmate: formData.idealFlatmate,
-            contact_name: formData.name,
-            age: Number(formData.age),
-            phone: formData.phone,
-            image_urls: uploadedImageUrls,
-            parking_available: formData.parkingAvailable,
-            vehicle_type: formData.vehicleType,
-            floor_number: formData.floorNumber,
-            has_lift: formData.hasLift,
-          },
-        ])
-        .select()
-        .single();
-
-    if (finalPropertyError) {
-      console.error(finalPropertyError);
-      if (uploadedImagePaths.length > 0) {
-        await supabase.storage.from("Images").remove(uploadedImagePaths);
+        alert(`Failed to save property: ${finalPropertyError.message}`);
+        return;
       }
 
-      alert(`Failed to save property: ${finalPropertyError.message}`);
-      return;
+      alert("Property posted successfully!");
+      setFormData((prev) => ({ ...prev, images: [] }));
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    alert("Property posted successfully!");
-    setFormData((prev) => ({ ...prev, images: [] }));
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -382,7 +382,7 @@ export default function PostPropertyPage() {
               </select>
 
               <div className="flex flex-col">
-                <label className="text-sm text-gray-400 mb-1 ml-1">Available From (dd/mm/yyyy)</label>
+                <label className="text-sm text-gray-400 mb-1 ml-1">From when it is available (dd/mm/yyyy)</label>
                 <input
                   type="date"
                   name="availableFrom"
@@ -391,7 +391,7 @@ export default function PostPropertyPage() {
                   className="inputStyle"
                 />
               </div>
-              
+
               <input
                 type="number"
                 name="floorNumber"
@@ -436,21 +436,21 @@ export default function PostPropertyPage() {
               >
                 <option value="">What is available?</option>
                 <option value="Private Room">Private Room</option>
-                <option value="Double Shared">Double Shared</option>
-                <option value="Triple Shared">Triple Shared</option>
+                <option value="Double Shared Room">Double Shared Room</option>
+                <option value="Triple Shared Room">Triple Shared Room</option>
                 <option value="Entire Flat">Entire Flat</option>
               </select>
 
-              {formData.roomType !== "Entire Flat" && (
-                 <input
-                   type="number"
-                   name="currentFlatmates"
-                   placeholder="How many people already live here?"
-                   value={formData.currentFlatmates}
-                   onChange={handleChange}
-                   className="inputStyle"
-                 />
-               )}
+              {["Private Room", "Double Shared Room", "Triple Shared Room"].includes(formData.roomType) && (
+                <input
+                  type="number"
+                  name="currentFlatmates"
+                  placeholder="How many people sharing the flat?"
+                  value={formData.currentFlatmates}
+                  onChange={handleChange}
+                  className="inputStyle"
+                />
+              )}
 
               <select
                 name="bathroomType"
@@ -597,7 +597,7 @@ export default function PostPropertyPage() {
                 </option>
                 <option value="No Visitors">No Visitors</option>
               </select>
-              
+
               <select
                 name="parkingAvailable"
                 value={formData.parkingAvailable}
@@ -608,7 +608,7 @@ export default function PostPropertyPage() {
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
               </select>
-              
+
               {formData.parkingAvailable === "Yes" && (
                 <select
                   name="vehicleType"
@@ -617,8 +617,8 @@ export default function PostPropertyPage() {
                   className="inputStyle"
                 >
                   <option value="">Vehicle Type Supported</option>
-                  <option value="Two Wheeler">Two Wheeler</option>
-                  <option value="Four Wheeler">Four Wheeler</option>
+                  <option value="2 Wheeler">2 Wheeler</option>
+                  <option value="4 Wheeler">4 Wheeler</option>
                   <option value="Both">Both</option>
                 </select>
               )}
@@ -816,11 +816,10 @@ export default function PostPropertyPage() {
             />
 
             <p
-              className={`mt-3 text-sm font-medium ${
-                formData.images.length > MAX_PROPERTY_IMAGES
+              className={`mt-3 text-sm font-medium ${formData.images.length > MAX_PROPERTY_IMAGES
                   ? "text-red-400"
                   : "text-green-400"
-              }`}
+                }`}
             >
               {formData.images.length} / {MAX_PROPERTY_IMAGES} images selected
             </p>

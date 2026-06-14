@@ -28,6 +28,12 @@ class AiPreferences(BaseModel):
     cleanliness: str = "No preference"
     socialLevel: str = "No preference"
     flatmateStyle: str = "No preference"
+    roomType: str = "Any"
+    moveInDate: str = ""
+    parkingRequired: str = "No preference"
+    vehicleType: str = "Any"
+    floorPreference: str = ""
+    liftRequired: str = "No preference"
 
 class MatchRequest(BaseModel):
     preferences: AiPreferences
@@ -47,6 +53,9 @@ def build_sql(prefs: AiPreferences) -> str:
         f"(work_from_home = {quote(prefs.workFromHome)} OR work_from_home = 'Any' OR work_from_home = '')" if prefs.workFromHome and prefs.workFromHome != "No preference" else "TRUE",
         f"(cleanliness = {quote(prefs.cleanliness)} OR cleanliness = 'Any' OR cleanliness = '')" if prefs.cleanliness and prefs.cleanliness != "No preference" else "TRUE",
         f"(social_level = {quote(prefs.socialLevel)} OR social_level = 'Any' OR social_level = '')" if prefs.socialLevel and prefs.socialLevel != "No preference" else "TRUE",
+        f"(room_type = {quote(prefs.roomType)} OR {quote(prefs.roomType)} = 'Any')" if getattr(prefs, 'roomType', 'Any') != "Any" else "TRUE",
+        f"(parking_available = 'Yes')" if getattr(prefs, 'parkingRequired', '') == "Yes" else "TRUE",
+        f"(has_lift = 'Yes')" if getattr(prefs, 'liftRequired', '') == "Yes" else "TRUE",
     ]
     filtered = " AND ".join([c for c in conditions if c != "TRUE"])
     
@@ -105,6 +114,11 @@ async def ai_match(req: MatchRequest):
             "work_from_home": p.get("work_from_home"),
             "social_level": p.get("social_level"),
             "ideal_flatmate": p.get("ideal_flatmate"),
+            "available_from": p.get("available_from"),
+            "parking_available": p.get("parking_available"),
+            "vehicle_type": p.get("vehicle_type"),
+            "floor_number": p.get("floor_number"),
+            "has_lift": p.get("has_lift"),
         })
 
     system_prompt = """You are an expert flatmate and roommate compatibility evaluator.

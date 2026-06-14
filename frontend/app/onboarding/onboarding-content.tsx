@@ -48,6 +48,12 @@ export default function OnboardingContent() {
     pets: "",
     workFromHome: "",
     flatmateStyle: "",
+    roomType: "",
+    moveInDate: "",
+    parkingRequired: "",
+    vehicleType: "",
+    floorPreference: "",
+    liftRequired: "",
   });
 
   // ======================
@@ -156,6 +162,12 @@ export default function OnboardingContent() {
             cleanliness: formData.cleanliness,
             socialLevel: formData.socialLevel,
             flatmateStyle: formData.flatmateStyle,
+            roomType: formData.roomType,
+            moveInDate: formData.moveInDate,
+            parkingRequired: formData.parkingRequired,
+            vehicleType: formData.vehicleType,
+            floorPreference: formData.floorPreference,
+            liftRequired: formData.liftRequired,
           },
         }),
       });
@@ -532,6 +544,96 @@ export default function OnboardingContent() {
                   className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
                   required
                 />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Preferred Room Type</label>
+                  <select
+                    name="roomType"
+                    value={formData.roomType}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                  >
+                    <option value="">Any</option>
+                    <option value="Private Room">Private Room</option>
+                    <option value="Double Shared Room">Double Shared Room</option>
+                    <option value="Triple Shared Room">Triple Shared Room</option>
+                    <option value="Entire Flat">Entire Flat</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Move-in Date</label>
+                  <input
+                    type="date"
+                    name="moveInDate"
+                    value={formData.moveInDate}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Do you need parking?</label>
+                  <select
+                    name="parkingRequired"
+                    value={formData.parkingRequired}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                  >
+                    <option value="">No preference</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+
+                {formData.parkingRequired === "Yes" && (
+                  <div>
+                    <label className="block mb-3 text-sm text-gray-300">Vehicle Type</label>
+                    <select
+                      name="vehicleType"
+                      value={formData.vehicleType}
+                      onChange={handleChange}
+                      className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                    >
+                      <option value="">Any</option>
+                      <option value="2 Wheeler">2 Wheeler</option>
+                      <option value="4 Wheeler">4 Wheeler</option>
+                      <option value="Both">Both</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Do you need a lift?</label>
+                  <select
+                    name="liftRequired"
+                    value={formData.liftRequired}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                  >
+                    <option value="">No preference</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block mb-3 text-sm text-gray-300">Preferred Floor Number (Optional)</label>
+                  <input
+                    type="number"
+                    name="floorPreference"
+                    placeholder="e.g. 2"
+                    value={formData.floorPreference}
+                    onChange={handleChange}
+                    className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-cyan-400 transition"
+                  />
+                </div>
               </div>
             </div>
           )}
