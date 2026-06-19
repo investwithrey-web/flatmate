@@ -15,15 +15,19 @@ export default function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   // ======================
   // EMAIL LOGIN
   // ======================
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
+
     if (!email || !password) {
-      alert("Please enter Email and Password.");
+      setErrorMsg("Please enter your email and password.");
       return;
     }
     setLoading(true);
@@ -35,15 +39,53 @@ export default function LoginContent() {
       });
 
       if (error) {
-        throw error;
+        // Supabase returns the same "Invalid login credentials" for both
+        // wrong email and wrong password. We probe email existence separately.
+        const emailExists = await checkEmailExists(email);
+        if (!emailExists) {
+          setErrorMsg("Email not found. Please check your email address or sign up.");
+        } else {
+          setErrorMsg("Incorrect password. Please try again.");
+        }
+        return;
       }
 
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Invalid email or password.");
+      setErrorMsg(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ======================
+  // CHECK IF EMAIL EXISTS
+  // We use signInWithOtp (magic link, no create) to probe.
+  // If it says "Email not confirmed" the user exists.
+  // If it says "User not found" the email is not registered.
+  // ======================
+  const checkEmailExists = async (emailToCheck: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailToCheck,
+        options: { shouldCreateUser: false },
+      });
+      // If no error or error is about confirmation/rate-limit → email exists
+      if (!error) return true;
+      const msg = error.message?.toLowerCase() ?? "";
+      if (
+        msg.includes("email not confirmed") ||
+        msg.includes("email link") ||
+        msg.includes("for security purposes") ||
+        msg.includes("email rate limit")
+      ) {
+        return true;
+      }
+      // "Signups not allowed" or "User not found" → email doesn't exist
+      return false;
+    } catch {
+      return false;
     }
   };
 
@@ -53,22 +95,24 @@ export default function LoginContent() {
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
       });
       if (error) throw error;
-      // Note: Redirect happens automatically, no need for router.push()
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Google sign-in failed.");
+      setErrorMsg(err.message || "Google sign-in failed.");
     }
   };
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setShowPopup(true);
+    }
+    if (searchParams.get("reset") === "success") {
+      setShowPasswordReset(true);
     }
   }, [searchParams]);
 
@@ -91,6 +135,16 @@ export default function LoginContent() {
           </p>
         </div>
 
+        {/* Password Reset Success Banner */}
+        {showPasswordReset && (
+          <div className="mb-6 p-4 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-start gap-3">
+            <span className="text-green-400 text-lg">✓</span>
+            <p className="text-green-300 text-sm">
+              Password reset successfully! You can now log in with your new password.
+            </p>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-6">
           {/* Email */}
@@ -102,7 +156,10 @@ export default function LoginContent() {
               type="email"
               placeholder="name@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrorMsg("");
+              }}
               className="w-full px-5 py-4 rounded-2xl bg-black/40 border border-white/10 focus:border-cyan-400 outline-none text-white placeholder:text-gray-500 transition"
               required
             />
@@ -110,24 +167,41 @@ export default function LoginContent() {
 
           {/* Password */}
           <div>
-            <label className="block mb-3 text-sm text-gray-300">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm text-gray-300">Password</label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-cyan-400 hover:text-cyan-300 transition"
+              >
+                Forgot Password?
+              </Link>
+            </div>
             <input
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setErrorMsg("");
+              }}
               className="w-full px-5 py-4 rounded-2xl bg-black/40 border border-white/10 focus:border-cyan-400 outline-none text-white placeholder:text-gray-500 transition"
               required
             />
           </div>
 
+          {/* Inline Error Message */}
+          {errorMsg && (
+            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start gap-3">
+              <span className="text-red-400 text-lg leading-none">⚠</span>
+              <p className="text-red-300 text-sm">{errorMsg}</p>
+            </div>
+          )}
+
           {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-2xl bg-cyan-400 text-black font-bold hover:scale-[1.02] active:scale-95 transition duration-300"
+            className="w-full py-4 rounded-2xl bg-cyan-400 text-black font-bold hover:scale-[1.02] active:scale-95 transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -161,6 +235,7 @@ export default function LoginContent() {
         </p>
       </div>
 
+      {/* Account Created Popup */}
       {showPopup && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
           <div className="bg-zinc-900 border border-white/25 rounded-3xl p-10 w-[90%] max-w-md text-center shadow-2xl relative">
