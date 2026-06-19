@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/app/components/auth-provider";
 import Link from "next/link";
@@ -9,6 +10,7 @@ const MAX_PROPERTY_IMAGES = 5;
 
 export default function PostPropertyPage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -280,8 +282,7 @@ export default function PostPropertyPage() {
         return;
       }
 
-      alert("Property posted successfully!");
-      setFormData((prev) => ({ ...prev, images: [] }));
+      router.push("/listings");
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
