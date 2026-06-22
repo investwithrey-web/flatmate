@@ -157,6 +157,26 @@ export default function HeroSection() {
 
             </div>
 
+              {/* MOBILE SCROLLING IMAGES — hidden on lg+ */}
+              <div className="lg:hidden mt-12 overflow-hidden">
+                <div className="animate-scroll-left flex gap-4" style={{ width: 'max-content' }}>
+                  {[...images, ...images, ...images].map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative flex-shrink-0 w-[200px] h-[140px] rounded-2xl overflow-hidden border border-white/10"
+                    >
+                      <Image
+                        src={img}
+                        alt="Room"
+                        fill
+                        sizes="200px"
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
 
             {/* RIGHT IMAGE COLUMN */}
@@ -458,6 +478,10 @@ export default function HeroSection() {
           animation: scrollDown 25s linear infinite;
         }
 
+        .animate-scroll-left {
+          animation: scrollLeft 20s linear infinite;
+        }
+
         @keyframes scrollUp {
           0% {
             transform: translateY(0%);
@@ -475,6 +499,16 @@ export default function HeroSection() {
 
           100% {
             transform: translateY(0%);
+          }
+        }
+
+        @keyframes scrollLeft {
+          0% {
+            transform: translateX(0%);
+          }
+
+          100% {
+            transform: translateX(-33.33%);
           }
         }
       `}</style>
