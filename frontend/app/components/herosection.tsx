@@ -468,50 +468,6 @@ export default function HeroSection() {
 
 </footer>
 
-      {/* Animations */}
-      <style jsx>{`
-        .animate-scroll-up {
-          animation: scrollUp 25s linear infinite;
-        }
-
-        .animate-scroll-down {
-          animation: scrollDown 25s linear infinite;
-        }
-
-        .animate-scroll-left {
-          animation: scrollLeft 20s linear infinite;
-        }
-
-        @keyframes scrollUp {
-          0% {
-            transform: translateY(0%);
-          }
-
-          100% {
-            transform: translateY(-50%);
-          }
-        }
-
-        @keyframes scrollDown {
-          0% {
-            transform: translateY(-50%);
-          }
-
-          100% {
-            transform: translateY(0%);
-          }
-        }
-
-        @keyframes scrollLeft {
-          0% {
-            transform: translateX(0%);
-          }
-
-          100% {
-            transform: translateX(-33.33%);
-          }
-        }
-      `}</style>
     </div>
   );
 }
