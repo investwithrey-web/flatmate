@@ -78,7 +78,7 @@ export default function HeroSection() {
         {/* Background Glow */}
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-900/30 via-black to-cyan-900/20 z-0" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-4 pb-10 lg:py-24">
 
           <div className="grid lg:grid-cols-3 gap-10 items-center">
 
@@ -108,23 +108,23 @@ export default function HeroSection() {
             {/* CENTER CONTENT */}
             <div className="text-center">
 
-              <div className="inline-block px-4 py-2 rounded-full bg-white/10 text-sm mb-6 border border-white/10">
+              <div className="inline-block px-4 py-2 rounded-full bg-white/10 text-sm mb-3 lg:mb-6 border border-white/10">
                 AI Powered Flatmate Matching
               </div>
 
-              <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight">
+              <h1 className="text-4xl lg:text-7xl font-extrabold leading-tight">
                 Find Your Perfect
                 <span className="text-cyan-400"> Flatmate </span>
                 Using AI
               </h1>
 
-              <p className="mt-8 text-gray-300 text-lg leading-relaxed max-w-xl mx-auto">
+              <p className="mt-4 lg:mt-8 text-gray-300 text-base lg:text-lg leading-relaxed max-w-xl mx-auto">
                 Match with compatible roommates based on lifestyle,
                 food habits, sleep schedule, work timing,
                 cleanliness, personality, and budget.
               </p>
 
-              <div className="flex justify-center gap-5 mt-10 flex-wrap">
+              <div className="flex justify-center gap-5 mt-6 lg:mt-10 flex-wrap">
 
                 <Link href="/listings">
                   <button className="px-8 py-4 rounded-2xl bg-white text-black font-semibold hover:scale-105 transition duration-300 shadow-lg">
@@ -141,7 +141,7 @@ export default function HeroSection() {
               </div>
 
               {/* PREMIUM HIGHLIGHTS */}
-            <div className="flex justify-center gap-8 mt-12 flex-wrap text-sm lg:text-base text-gray-400">
+            <div className="flex justify-center gap-8 mt-4 lg:mt-12 flex-wrap text-sm lg:text-base text-gray-400">
 
             <div className="hover:text-cyan-400 transition duration-300">
                 AI Powered Recommendations
