@@ -158,7 +158,7 @@ export default function HeroSection() {
             </div>
 
               {/* MOBILE SCROLLING IMAGES — hidden on lg+ */}
-              <div className="lg:hidden mt-12 overflow-hidden">
+              <div className="lg:hidden overflow-hidden">
                 <div className="animate-scroll-left flex gap-4" style={{ width: 'max-content' }}>
                   {[...images, ...images, ...images].map((img, index) => (
                     <div
