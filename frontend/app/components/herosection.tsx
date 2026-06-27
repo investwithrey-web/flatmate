@@ -80,6 +80,26 @@ export default function HeroSection() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-4 pb-10 lg:py-24">
 
+          {/* MOBILE SCROLLING IMAGES — shown first on mobile, hidden on lg+ */}
+          <div className="lg:hidden overflow-hidden mb-6">
+            <div className="animate-scroll-left flex gap-4" style={{ width: 'max-content' }}>
+              {[...images, ...images, ...images].map((img, index) => (
+                <div
+                  key={index}
+                  className="relative flex-shrink-0 w-[200px] h-[140px] rounded-2xl overflow-hidden border border-white/10"
+                >
+                  <Image
+                    src={img}
+                    alt="Room"
+                    fill
+                    sizes="200px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="grid lg:grid-cols-3 gap-10 items-center">
 
             {/* LEFT IMAGE COLUMN */}
@@ -141,40 +161,20 @@ export default function HeroSection() {
               </div>
 
               {/* PREMIUM HIGHLIGHTS */}
-            <div className="flex justify-center gap-8 mt-4 lg:mt-12 flex-wrap text-sm lg:text-base text-gray-400">
+              <div className="flex justify-center gap-8 mt-4 lg:mt-12 flex-wrap text-sm lg:text-base text-gray-400">
 
-            <div className="hover:text-cyan-400 transition duration-300">
-                AI Powered Recommendations
-            </div>
-
-            <div className="hover:text-cyan-400 transition duration-300">
-                Personalized Roommate Discovery
-            </div>
-
-            <div className="hover:text-cyan-400 transition duration-300">
-                Seamless Property Experience
-            </div>
-
-            </div>
-
-              {/* MOBILE SCROLLING IMAGES — hidden on lg+ */}
-              <div className="lg:hidden overflow-hidden">
-                <div className="animate-scroll-left flex gap-4" style={{ width: 'max-content' }}>
-                  {[...images, ...images, ...images].map((img, index) => (
-                    <div
-                      key={index}
-                      className="relative flex-shrink-0 w-[200px] h-[140px] rounded-2xl overflow-hidden border border-white/10"
-                    >
-                      <Image
-                        src={img}
-                        alt="Room"
-                        fill
-                        sizes="200px"
-                        className="object-cover"
-                      />
-                    </div>
-                  ))}
+                <div className="hover:text-cyan-400 transition duration-300">
+                  AI Powered Recommendations
                 </div>
+
+                <div className="hover:text-cyan-400 transition duration-300">
+                  Personalized Roommate Discovery
+                </div>
+
+                <div className="hover:text-cyan-400 transition duration-300">
+                  Seamless Property Experience
+                </div>
+
               </div>
 
             </div>
