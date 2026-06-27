@@ -8,35 +8,47 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // The Supabase JS client automatically reads the ?code= from the URL
-    // and exchanges it for a session on the client side.
-    // We just need to wait for the SIGNED_IN event and then redirect.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          subscription.unsubscribe();
-          router.replace("/dashboard");
-        }
-      }
-    );
+    const handleCallback = async () => {
+      // Handle hash-based implicit flow (#access_token=...) — Supabase sets session from hash automatically
+      // Handle PKCE code flow (?code=...) — Supabase client exchanges it automatically
+      // In both cases, just wait for the session to be ready.
 
-    // Also check if session already exists (handles fast exchanges)
-    supabase.auth.getSession().then(({ data: { session } }) => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        subscription.unsubscribe();
         router.replace("/dashboard");
+        return;
       }
-    });
 
-    return () => subscription.unsubscribe();
+      // Listen for the auth state change (fires after automatic code/hash exchange)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+            subscription.unsubscribe();
+            router.replace("/dashboard");
+          }
+        }
+      );
+
+      // Safety fallback — if 5 seconds pass with no event, go to login
+      const timeout = setTimeout(() => {
+        subscription.unsubscribe();
+        router.replace("/login");
+      }, 5000);
+
+      return () => {
+        subscription.unsubscribe();
+        clearTimeout(timeout);
+      };
+    };
+
+    handleCallback();
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-      {/* Spinner */}
-      <div className="w-10 h-10 border-4 border-white/10 border-t-cyan-400 rounded-full animate-spin" />
-      <p className="text-cyan-400 text-xl font-bold">Signing you in…</p>
-      <p className="text-gray-400 text-sm">Please wait a moment.</p>
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+      <div className="w-12 h-12 border-4 border-white/10 border-t-cyan-400 rounded-full animate-spin" />
+      <p className="text-cyan-400 text-xl font-bold tracking-wide">Signing you in…</p>
+      <p className="text-gray-500 text-sm">Hang tight, almost there.</p>
     </div>
   );
 }
