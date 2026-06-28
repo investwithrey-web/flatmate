@@ -457,6 +457,10 @@ export default function HeroSection() {
         Login
       </Link>
 
+      <Link href="/contact" className="hover:text-cyan-400 transition">
+        Contact Us
+      </Link>
+
     </div>
 
     {/* RIGHT SIDE COPYRIGHT */}

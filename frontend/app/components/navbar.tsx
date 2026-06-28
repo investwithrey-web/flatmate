@@ -36,6 +36,9 @@ export default function Navbar() {
           <Link href="/post_property" className="hover:text-cyan-400 transition duration-300">
             Post Property
           </Link>
+          <Link href="/contact" className="hover:text-cyan-400 transition duration-300">
+            Contact Us
+          </Link>
 
           {user ? (
             <>
@@ -119,6 +122,13 @@ export default function Navbar() {
             className="hover:text-cyan-400 py-1 transition"
           >
             Post Property
+          </Link>
+          <Link
+            href="/contact"
+            onClick={() => setMobileMenuOpen(false)}
+            className="hover:text-cyan-400 py-1 transition"
+          >
+            Contact Us
           </Link>
 
           {user ? (
