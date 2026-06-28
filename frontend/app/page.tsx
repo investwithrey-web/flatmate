@@ -9,17 +9,25 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Only redirect on a fresh OAuth login (SIGNED_IN event from hash tokens).
-    // Do NOT redirect users who are already logged in and just visiting the homepage.
+    // Handles the case where Supabase redirects back to the root URL
+    // with hash tokens (#access_token=...) — the Supabase client auto-parses
+    // them and fires SIGNED_IN. We then forward the user to /dashboard.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "SIGNED_IN" && session) {
-          // This fires right after Google OAuth redirects back here with tokens.
           subscription.unsubscribe();
           router.replace("/dashboard");
         }
       }
     );
+
+    // Also handle already-logged-in users visiting the homepage
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        subscription.unsubscribe();
+        router.replace("/dashboard");
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, [router]);

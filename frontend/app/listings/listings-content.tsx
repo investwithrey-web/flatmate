@@ -49,6 +49,7 @@ interface Property {
   image_urls: string[];
   user_id: string;
   created_at: string;
+  is_sold_out: boolean;
 }
 
 interface UserProfile {
@@ -109,6 +110,31 @@ export default function ListingsContent() {
   const [backendScores, setBackendScores] = useState<Record<string, { score: number; details: string[] }>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [soldOutLoading, setSoldOutLoading] = useState(false);
+
+  const handleToggleSoldOut = async (property: Property) => {
+    if (!user || property.user_id !== user.id) return;
+    setSoldOutLoading(true);
+    try {
+      const newValue = !property.is_sold_out;
+      const { error } = await supabase
+        .from("properties")
+        .update({ is_sold_out: newValue })
+        .eq("id", property.id);
+      if (error) throw error;
+      // Update local state
+      setProperties((prev) =>
+        prev.map((p) => (p.id === property.id ? { ...p, is_sold_out: newValue } : p))
+      );
+      if (selectedProperty?.id === property.id) {
+        setSelectedProperty((prev) => prev ? { ...prev, is_sold_out: newValue } : prev);
+      }
+    } catch (err: any) {
+      console.error("Error toggling sold out status:", err.message);
+    } finally {
+      setSoldOutLoading(false);
+    }
+  };
 
   const fetchAiMatches = async (prefs: any) => {
     setAiLoading(true);
@@ -537,11 +563,24 @@ export default function ListingsContent() {
                               : "/first.jpg"
                           }
                           alt={property.title}
-                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                          className={`object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ${property.is_sold_out ? "brightness-50 grayscale" : ""}`}
                         />
 
+                        {/* Sold Out Overlay */}
+                        {property.is_sold_out && (
+                          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                            <div className="rotate-[-20deg] border-4 border-red-500 rounded-lg px-6 py-2 shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                              <span className="text-red-400 font-black text-2xl tracking-[0.2em] uppercase">Sold Out</span>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="absolute top-4 right-4 z-10">
-                          {isOwnProperty ? (
+                          {property.is_sold_out ? (
+                            <div className="px-4 py-2 rounded-full bg-red-600/90 text-white font-bold text-xs shadow-md backdrop-blur-md uppercase tracking-wide">
+                              🔴 Sold Out
+                            </div>
+                          ) : isOwnProperty ? (
                             <div className="px-4 py-2 rounded-full bg-cyan-500/90 text-black font-bold text-sm shadow-md backdrop-blur-md">
                               Your Listing
                             </div>
@@ -1288,10 +1327,35 @@ export default function ListingsContent() {
                     <div className="bg-gradient-to-br from-cyan-950/20 to-purple-950/20 border border-white/15 rounded-3xl p-6">
                       <h3 className="text-lg font-bold mb-4 text-white">Match Compatibility</h3>
                       {ownSelectedProperty ? (
-                        <div className="text-center py-6">
-                          <p className="text-sm text-gray-300 mb-4">
-                            This is your posted listing. Match scores are shown for other people’s listings.
+                        <div className="text-center py-6 space-y-4">
+                          <p className="text-sm text-gray-300">
+                            This is your posted listing. Match scores are shown for other people's listings.
                           </p>
+                          <button
+                            onClick={() => handleToggleSoldOut(selectedProperty)}
+                            disabled={soldOutLoading}
+                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 ${
+                              selectedProperty.is_sold_out
+                                ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30"
+                                : "bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30"
+                            }`}
+                          >
+                            {soldOutLoading ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                                Updating...
+                              </span>
+                            ) : selectedProperty.is_sold_out ? (
+                              "✅ Reopen Listing"
+                            ) : (
+                              "🔴 Mark as Sold Out"
+                            )}
+                          </button>
+                          {selectedProperty.is_sold_out && (
+                            <p className="text-xs text-red-400/80">
+                              This listing is currently marked as sold out and is visible to others with a Sold Out tag.
+                            </p>
+                          )}
                         </div>
                       ) : skipMatching || (!userProfile?.onboarded && !adhocPreferences) ? (
                         <div className="text-center py-6 space-y-4">
