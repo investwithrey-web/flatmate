@@ -35,20 +35,20 @@ const features = [
 
 const stats = [
   {
-    number: "10K+",
-    label: "Verified Users",
+    number: "AI-First",
+    label: "Roommate Scoring",
   },
   {
-    number: "3K+",
-    label: "Properties Listed",
+    number: "0 ₹",
+    label: "Broker Commission",
   },
   {
-    number: "95%",
-    label: "Successful Matches",
+    number: "< 2 min",
+    label: "To Find Matches",
   },
   {
-    number: "24/7",
-    label: "AI Assistance",
+    number: "100%",
+    label: "Free to Join",
   },
 ];
 
